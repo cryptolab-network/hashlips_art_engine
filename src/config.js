@@ -28,19 +28,14 @@ const solanaMetadata = {
 // If you have selected Solana then the collection starts from 0 automatically
 const layerConfigurations = [
   {
-    growEditionSizeTo: 64,
+    growEditionSizeTo: 100,
     layersOrder: [
-      { name: "background" },
-     //{ name: "images body" },      
-      //{ name: "images face" },
-
-      { name: "body" },      
-      { name: "hairs" },
-       { name: "lips" },
-       { name: "eyes" },
-       { name: "eyebrows" },
-       { name: "earrings" },
-       { name: "mask" },
+      { name: "background" },     
+      { name: "dress" },            
+      { name: "emotion" }, 
+      { name: "earring",   options: {  bypassDNA: true  }  },
+      { name: "hair" },
+      { name: "mask" },
     ],
   },
 ];
