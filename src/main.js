@@ -29,6 +29,7 @@ const {
   gif,
   IMG_FORMAT
 } = require(path.join(basePath, "/src/config.js"));
+const pretty = require('pretty');
 
 //Image format support - supported values "png", "svg"
 const PNG_FORMAT = "png";
@@ -101,16 +102,27 @@ const svgLayersSetup = () => {
 
 const regenSvgId = (layersPath) => {
   fs.readdirSync(rawSvgDir).forEach(file => {
-    const rawSvg = fs.readFileSync(`${rawSvgDir}/${file}`).toString('utf8');
+    console.log(file);
+    let rawSvg = fs.readFileSync(`${rawSvgDir}/${file}`).toString('utf8');
+    rawSvg = pretty(rawSvg);
     const ids = rawSvg.match(/id="(.)*"/g)?.map(id => id.split('"')[1]);
+    if (ids) {
+      console.log(ids.length);
+      console.log(ids);
+    }
     const idsSet = [... new Set(ids)];
+    console.log(idsSet.length);
+    console.log(idsSet);
     let newSvg = rawSvg;
     for (const id of idsSet) {
       if (id !== 'pattern') {
-        const idRe = new RegExp(`${id}"`, 'g');
-        newSvg = newSvg.replace(idRe, `${file.split('.svg')[0]}_${id}"`);
-        const refRe = new RegExp(`${id}\\)`, 'g');
-        newSvg = newSvg.replace(refRe, `${file.split('.svg')[0]}_${id})`);
+        const name = `${file.split('.svg')[0]}`;
+        const idRe = new RegExp(`id="${id}"`, 'g');
+        newSvg = newSvg.replace(idRe, `id="${name}_${id}"`);
+        const urlRe = new RegExp(`"url\\(#${id}\\)"`, 'g');
+        newSvg = newSvg.replace(urlRe, `"url(#${name}_${id})"`);
+        const hrefRe = new RegExp(`href="#${id}"`, 'g');
+        newSvg = newSvg.replace(hrefRe, `href="#${name}_${id}"`);
       }
     }
     // write to right layer
