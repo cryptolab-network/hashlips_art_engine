@@ -5,14 +5,17 @@ const isLocal = typeof process.pkg === "undefined";
 const basePath = isLocal ? process.cwd() : path.dirname(process.execPath);
 const { NETWORK } = require(path.join(basePath, "constants/network.js"));
 const fs = require("fs");
+const { exit } = require("process");
 const sha1 = require(path.join(basePath, "/node_modules/sha1"));
 const buildDir = path.join(basePath, "/build");
+const rawSvgDir = path.join(basePath, '/raw_svg');
 const {
   format,
   baseUri,
   description,
   background,
   uniqueDnaTorrance,
+  regenerateLayers,
   layerConfigurations,
   rarityDelimiter,
   boundDelimiter,
@@ -64,6 +67,61 @@ const buildSetup = () => {
     fs.mkdirSync(path.join(buildDir, "/gifs"));
   }
 };
+
+const svgLayersSetup = () => {
+  if (IMG_FORMAT === SVG_FORMAT) {
+    if (!fs.existsSync(rawSvgDir)) {
+      console.log('raw_svg not found.');
+      process.exit();
+    }
+  
+    if (fs.existsSync(layersDir)) {
+      fs.rmdirSync(layersDir, { recursive: true});
+    }
+    fs.mkdirSync(layersDir);
+    console.log(layerConfigurations);
+  
+    // only support one layer
+    layerConfigurations[0].layersOrder.forEach(layer => {
+      fs.mkdirSync(path.join(layersDir, layer.name));
+    });
+
+    const layersPath = layerConfigurations[0].layersOrder.map(layer => {
+      return {
+        name: layer.name,
+        prefix: layer.prefix,
+        path: path.join(layersDir, layer.name)
+      }
+    });
+    regenSvgId(layersPath);
+    // process.exit();
+    console.log('layer_svgs setup complete.');
+  }
+}
+
+const regenSvgId = (layersPath) => {
+  fs.readdirSync(rawSvgDir).forEach(file => {
+    const rawSvg = fs.readFileSync(`${rawSvgDir}/${file}`).toString('utf8');
+    const ids = rawSvg.match(/id="(.)*"/g).map(id => id.split('"')[1]);
+    const idsSet = [... new Set(ids)];
+    let newSvg = rawSvg;
+    for (const id of idsSet) {
+      if (id !== 'pattern') {
+        const idRe = new RegExp(`${id}"`, 'g');
+        newSvg = newSvg.replace(idRe, `${file.split('.svg')[0]}_${id}"`);
+        const refRe = new RegExp(`${id}\\)`, 'g');
+        newSvg = newSvg.replace(refRe, `${file.split('.svg')[0]}_${id})`);
+      }
+    }
+    // write to right layer
+    const prefixName = file.split('_')[0];
+    const layer = layersPath.find(layer => layer.name === prefixName || layer.prefix === prefixName);
+    if (layer) {
+      fs.writeFileSync(`${layer.path}/${file}`, newSvg, 'utf8');
+    }
+  })
+}
+
 
 const getRarityWeight = (_str) => {
   let nameWithoutExtension = _str.slice(0, -4);
@@ -443,4 +501,4 @@ const startCreating = async () => {
   writeMetaData(JSON.stringify(metadataList, null, 2));
 };
 
-module.exports = { startCreating, buildSetup, getElements };
+module.exports = { startCreating, buildSetup, getElements, svgLayersSetup };
