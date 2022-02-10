@@ -102,7 +102,7 @@ const svgLayersSetup = () => {
 const regenSvgId = (layersPath) => {
   fs.readdirSync(rawSvgDir).forEach(file => {
     const rawSvg = fs.readFileSync(`${rawSvgDir}/${file}`).toString('utf8');
-    const ids = rawSvg.match(/id="(.)*"/g).map(id => id.split('"')[1]);
+    const ids = rawSvg.match(/id="(.)*"/g)?.map(id => id.split('"')[1]);
     const idsSet = [... new Set(ids)];
     let newSvg = rawSvg;
     for (const id of idsSet) {
