@@ -106,13 +106,7 @@ const regenSvgId = (layersPath) => {
     let rawSvg = fs.readFileSync(`${rawSvgDir}/${file}`).toString('utf8');
     rawSvg = pretty(rawSvg);
     const ids = rawSvg.match(/id="(.)*"/g)?.map(id => id.split('"')[1]);
-    if (ids) {
-      console.log(ids.length);
-      console.log(ids);
-    }
     const idsSet = [... new Set(ids)];
-    console.log(idsSet.length);
-    console.log(idsSet);
     let newSvg = rawSvg;
     for (const id of idsSet) {
       if (id !== 'pattern') {

@@ -19,7 +19,8 @@
     "pixelate": "node utils/pixelate.js",
     "update_info": "node utils/update_info.js",
     "preview_gif": "node utils/preview_gif.js",
-    "svg2png": "node utils/svg2png.js"
+    "svg2png": "node utils/svg2png.js",
+    "gengif": "node utils/gengif.js"
   },
   "author": "Daniel Eugene Botha (HashLips)",
   "license": "MIT",

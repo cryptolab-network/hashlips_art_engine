@@ -28,7 +28,7 @@ const regenerateLayers = true;
 
 const layerConfigurations = [
   {
-    growEditionSizeTo: 100,
+    growEditionSizeTo: 10,
     layersOrder: [
       { name: "background",
         prefix: 'bg'
