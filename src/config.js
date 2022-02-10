@@ -4,9 +4,11 @@ const { NETWORK } = require(`${basePath}/constants/network.js`);
 
 const network = NETWORK.eth;
 
+const IMG_FORMAT = "svg";
+
 // General metadata for Ethereum
-const namePrefix = "Your Collection";
-const description = "Remember to replace this description";
+const namePrefix = "Alchereum";
+const description = "A character who can continuously generate profit for you";
 const baseUri = "ipfs://NewUriToReplace";
 
 const solanaMetadata = {
@@ -20,30 +22,65 @@ const solanaMetadata = {
     },
   ],
 };
-
 // If you have selected Solana then the collection starts from 0 automatically
 const layerConfigurations = [
   {
-    growEditionSizeTo: 5,
+    growEditionSizeTo: 100,
     layersOrder: [
-      { name: "Background" },
-      { name: "Eyeball" },
-      { name: "Eye color" },
-      { name: "Iris" },
-      { name: "Shine" },
-      { name: "Bottom lid" },
-      { name: "Top lid" },
+      { name: "background" },
+      { name: "rarity" },
+      { 
+        name: "cloak_back",
+        options: {
+          bound: true,
+        }
+      },
+      { name: "shadow" },
+      { 
+        name: "right_hand",
+        options: {
+          bound: true,
+        }
+      },
+      { name: "spellbook" },
+      { 
+        name: "body",
+        options: {
+          bindTo: "right_hand",
+          bypassDNA: true,
+        }
+      },
+      { name: "bandage" },
+      { name: "boots" },
+      { name: "pants" },
+      { name: "clothes" },
+      { name: "necklace" },
+      { 
+        name: "cloak_front",
+        options: {
+          bindTo: "cloak_back",
+          bypassDNA: true, 
+        }
+      },
+      { name: "staff" },
+      { name: "hats" },
+      { name: "fingers",
+        options: {
+          bindTo: "right_hand",
+          bypassDNA: true,
+        }
+      },
     ],
   },
 ];
 
 const shuffleLayerConfigurations = false;
 
-const debugLogs = false;
+const debugLogs = true
 
 const format = {
-  width: 512,
-  height: 512,
+  width: 736,
+  height: 1021,
   smoothing: false,
 };
 
@@ -72,7 +109,7 @@ const pixelFormat = {
 };
 
 const background = {
-  generate: true,
+  generate: false,
   brightness: "80%",
   static: false,
   default: "#000000",
@@ -81,6 +118,8 @@ const background = {
 const extraMetadata = {};
 
 const rarityDelimiter = "#";
+
+const boundDelimiter = "%";
 
 const uniqueDnaTorrance = 10000;
 
@@ -119,4 +158,5 @@ module.exports = {
   solanaMetadata,
   gif,
   preview_gif,
+  IMG_FORMAT,
 };

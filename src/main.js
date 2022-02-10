@@ -1,10 +1,12 @@
-const basePath = process.cwd();
-const { NETWORK } = require(`${basePath}/constants/network.js`);
+"use strict";
+
+const path = require("path");
+const isLocal = typeof process.pkg === "undefined";
+const basePath = isLocal ? process.cwd() : path.dirname(process.execPath);
+const { NETWORK } = require(path.join(basePath, "constants/network.js"));
 const fs = require("fs");
-const sha1 = require(`${basePath}/node_modules/sha1`);
-const { createCanvas, loadImage } = require(`${basePath}/node_modules/canvas`);
-const buildDir = `${basePath}/build`;
-const layersDir = `${basePath}/layers`;
+const sha1 = require(path.join(basePath, "/node_modules/sha1"));
+const buildDir = path.join(basePath, "/build");
 const {
   format,
   baseUri,
@@ -13,6 +15,7 @@ const {
   uniqueDnaTorrance,
   layerConfigurations,
   rarityDelimiter,
+  boundDelimiter,
   shuffleLayerConfigurations,
   debugLogs,
   extraMetadata,
@@ -21,15 +24,32 @@ const {
   network,
   solanaMetadata,
   gif,
-} = require(`${basePath}/src/config.js`);
-const canvas = createCanvas(format.width, format.height);
-const ctx = canvas.getContext("2d");
-ctx.imageSmoothingEnabled = format.smoothing;
+  IMG_FORMAT
+} = require(path.join(basePath, "/src/config.js"));
+
+//Image format support - supported values "png", "svg"
+const PNG_FORMAT = "png";
+const SVG_FORMAT = "svg";
+
+const layersDir = (IMG_FORMAT == PNG_FORMAT ) ? path.join(basePath, "/layers") : path.join(basePath, "/layer_svgs");
+const { ImageEngine } = (IMG_FORMAT == PNG_FORMAT ) ?  require(path.join(basePath, "/src/pngengine.js")) : require(path.join(basePath, "/src/svgengine.js"));
+
+
+//IMG_FORMAT Specific constants
+const Image_uri =  (IMG_FORMAT == PNG_FORMAT ) ? "image.png" : "image.svg";
+const Image_type= (IMG_FORMAT == PNG_FORMAT ) ? "image.png" : "image/svg";
+const Image_extension = (IMG_FORMAT == PNG_FORMAT ) ? "png" : "svg";
+
+console.log("Using Image format: " + IMG_FORMAT);
+
 var metadataList = [];
 var attributesList = [];
 var dnaList = new Set();
 const DNA_DELIMITER = "-";
-const HashlipsGiffer = require(`${basePath}/modules/HashlipsGiffer.js`);
+const HashlipsGiffer = require(path.join(
+  basePath,
+  "/modules/HashlipsGiffer.js"
+));
 
 let hashlipsGiffer = null;
 
@@ -38,10 +58,10 @@ const buildSetup = () => {
     fs.rmdirSync(buildDir, { recursive: true });
   }
   fs.mkdirSync(buildDir);
-  fs.mkdirSync(`${buildDir}/json`);
-  fs.mkdirSync(`${buildDir}/images`);
+  fs.mkdirSync(path.join(buildDir, "/json"));
+  fs.mkdirSync(path.join(buildDir, "/images"));
   if (gif.export) {
-    fs.mkdirSync(`${buildDir}/gifs`);
+    fs.mkdirSync(path.join(buildDir, "/gifs"));
   }
 };
 
@@ -56,8 +76,19 @@ const getRarityWeight = (_str) => {
   return nameWithoutWeight;
 };
 
+const getBoundTarget = (_str) => {
+  let nameWithoutExtension = _str.slice(0, -4);
+  var nameWithoutWeight = Number(
+    nameWithoutExtension.split(boundDelimiter).pop()
+  );
+  if (isNaN(nameWithoutWeight)) {
+    nameWithoutWeight = 1;
+  }
+  return nameWithoutWeight;
+};
+
 const cleanDna = (_str) => {
-  const withoutOptions = removeQueryStrings(_str);
+  const withoutOptions = removeQueryStrings(_str)
   var dna = Number(withoutOptions.split(":").shift());
   return dna;
 };
@@ -103,26 +134,23 @@ const layersSetup = (layersOrder) => {
       layerObj.options?.["bypassDNA"] !== undefined
         ? layerObj.options?.["bypassDNA"]
         : false,
+    bound:
+      layerObj.options?.["bound"] !== undefined
+      ? layerObj.options?.["bound"]
+      : false,
+    bindTo:
+      layerObj.options?.["bindTo"] !== undefined
+      ? layerObj.options?.["bindTo"]
+      : ""
   }));
   return layers;
 };
 
 const saveImage = (_editionCount) => {
   fs.writeFileSync(
-    `${buildDir}/images/${_editionCount}.png`,
-    canvas.toBuffer("image/png")
+    `${buildDir}/images/${_editionCount}.${Image_extension}`,
+    ImageEngine.getImageBuffer()
   );
-};
-
-const genColor = () => {
-  let hue = Math.floor(Math.random() * 360);
-  let pastel = `hsl(${hue}, 100%, ${background.brightness})`;
-  return pastel;
-};
-
-const drawBackground = () => {
-  ctx.fillStyle = background.static ? background.default : genColor();
-  ctx.fillRect(0, 0, format.width, format.height);
 };
 
 const addMetadata = (_dna, _edition) => {
@@ -130,7 +158,7 @@ const addMetadata = (_dna, _edition) => {
   let tempMetadata = {
     name: `${namePrefix} #${_edition}`,
     description: description,
-    image: `${baseUri}/${_edition}.png`,
+    image: `${baseUri}/${_edition}.${Image_extension}`,
     dna: sha1(_dna),
     edition: _edition,
     date: dateTime,
@@ -146,7 +174,7 @@ const addMetadata = (_dna, _edition) => {
       description: tempMetadata.description,
       //Added metadata for solana
       seller_fee_basis_points: solanaMetadata.seller_fee_basis_points,
-      image: `image.png`,
+      image: Image_uri,
       //Added metadata for solana
       external_url: solanaMetadata.external_url,
       edition: _edition,
@@ -155,8 +183,8 @@ const addMetadata = (_dna, _edition) => {
       properties: {
         files: [
           {
-            uri: "image.png",
-            type: "image/png",
+            uri: Image_uri,
+            type: Image_type,
           },
         ],
         category: "image",
@@ -178,37 +206,13 @@ const addAttributes = (_element) => {
 
 const loadLayerImg = async (_layer) => {
   return new Promise(async (resolve) => {
-    const image = await loadImage(`${_layer.selectedElement.path}`);
+    const image = await ImageEngine.loadImage(_layer);
     resolve({ layer: _layer, loadedImage: image });
   });
 };
 
-const addText = (_sig, x, y, size) => {
-  ctx.fillStyle = text.color;
-  ctx.font = `${text.weight} ${size}pt ${text.family}`;
-  ctx.textBaseline = text.baseline;
-  ctx.textAlign = text.align;
-  ctx.fillText(_sig, x, y);
-};
-
 const drawElement = (_renderObject, _index, _layersLen) => {
-  ctx.globalAlpha = _renderObject.layer.opacity;
-  ctx.globalCompositeOperation = _renderObject.layer.blend;
-  text.only
-    ? addText(
-        `${_renderObject.layer.name}${text.spacer}${_renderObject.layer.selectedElement.name}`,
-        text.xGap,
-        text.yGap * (_index + 1),
-        text.size
-      )
-    : ctx.drawImage(
-        _renderObject.loadedImage,
-        0,
-        0,
-        format.width,
-        format.height
-      );
-
+  ImageEngine.drawElement(_renderObject, _index, _layersLen);
   addAttributes(_renderObject);
 };
 
@@ -222,6 +226,8 @@ const constructLayerToDna = (_dna = "", _layers = []) => {
       blend: layer.blend,
       opacity: layer.opacity,
       selectedElement: selectedElement,
+      bound: layer.bound,
+      bindTo: layer.bindTo,
     };
   });
   return mappedDnaToLayers;
@@ -236,23 +242,23 @@ const constructLayerToDna = (_dna = "", _layers = []) => {
  * @returns new DNA string with any items that should be filtered, removed.
  */
 const filterDNAOptions = (_dna) => {
-  const dnaItems = _dna.split(DNA_DELIMITER);
-  const filteredDNA = dnaItems.filter((element) => {
+  const dnaItems = _dna.split(DNA_DELIMITER)
+  const filteredDNA = dnaItems.filter(element => {
     const query = /(\?.*$)/;
     const querystring = query.exec(element);
     if (!querystring) {
-      return true;
+      return true
     }
     const options = querystring[1].split("&").reduce((r, setting) => {
       const keyPairs = setting.split("=");
       return { ...r, [keyPairs[0]]: keyPairs[1] };
     }, []);
 
-    return options.bypassDNA;
-  });
+    return options.bypassDNA
+  })
 
-  return filteredDNA.join(DNA_DELIMITER);
-};
+  return filteredDNA.join(DNA_DELIMITER)
+}
 
 /**
  * Cleaning function for DNA strings. When DNA strings include an option, it
@@ -264,8 +270,8 @@ const filterDNAOptions = (_dna) => {
  */
 const removeQueryStrings = (_dna) => {
   const query = /(\?.*$)/;
-  return _dna.replace(query, "");
-};
+  return _dna.replace(query, '')
+}
 
 const isDnaUnique = (_DnaList = new Set(), _dna = "") => {
   const _filteredDNA = filterDNAOptions(_dna);
@@ -274,21 +280,36 @@ const isDnaUnique = (_DnaList = new Set(), _dna = "") => {
 
 const createDna = (_layers) => {
   let randNum = [];
+  let bound = {};
   _layers.forEach((layer) => {
     var totalWeight = 0;
     layer.elements.forEach((element) => {
       totalWeight += element.weight;
     });
+    if (layer.bindTo !== "") {
+      console.log(`this layer bound to ${layer.bindTo}`);
+      return randNum.push(
+        `${layer.elements[bound[layer.bindTo].boundIndex].id}:` +
+        `${layer.elements[bound[layer.bindTo].boundIndex].filename}${layer.bypassDNA? '?bypassDNA=true' : ''}`
+      );
+    }
     // number between 0 - totalWeight
     let random = Math.floor(Math.random() * totalWeight);
     for (var i = 0; i < layer.elements.length; i++) {
       // subtract the current weight from the random weight until we reach a sub zero value.
       random -= layer.elements[i].weight;
       if (random < 0) {
+        console.log(layer.elements[i]);
+        if (layer.bound === true) {
+          console.log("this layer is a binding, record it");
+          bound[layer.name] = {
+              name: layer.elements[i].name,
+              boundIndex: layer.elements[i].id,
+          };
+          console.log(bound);
+        }
         return randNum.push(
-          `${layer.elements[i].id}:${layer.elements[i].filename}${
-            layer.bypassDNA ? "?bypassDNA=true" : ""
-          }`
+          `${layer.elements[i].id}:${layer.elements[i].filename}${layer.bypassDNA? '?bypassDNA=true' : ''}`
         );
       }
     }
@@ -363,7 +384,7 @@ const startCreating = async () => {
 
         await Promise.all(loadedElements).then((renderObjectArray) => {
           debugLogs ? console.log("Clearing canvas") : null;
-          ctx.clearRect(0, 0, format.width, format.height);
+          ImageEngine.clearRect();
           if (gif.export) {
             hashlipsGiffer = new HashlipsGiffer(
               canvas,
@@ -376,7 +397,7 @@ const startCreating = async () => {
             hashlipsGiffer.start();
           }
           if (background.generate) {
-            drawBackground();
+            ImageEngine.drawBackground();
           }
           renderObjectArray.forEach((renderObject, index) => {
             drawElement(
