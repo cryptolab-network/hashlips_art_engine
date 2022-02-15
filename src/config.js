@@ -7,8 +7,8 @@ const network = NETWORK.eth;
 const IMG_FORMAT = "svg";
 
 // General metadata for Ethereum
-const namePrefix = "Alchereum";
-const description = "A character who can continuously generate profit for you";
+const namePrefix = "Alcheneko";
+const description = "Alcheneko Test NFT";
 const baseUri = "ipfs://NewUriToReplace";
 
 const solanaMetadata = {
@@ -25,10 +25,9 @@ const solanaMetadata = {
 // If you have selected Solana then the collection starts from 0 automatically
 const layerConfigurations = [
   {
-    growEditionSizeTo: 100,
+    growEditionSizeTo: 10,
     layersOrder: [
       { name: "background" },
-      { name: "rarity" },
       { 
         name: "cloak_back",
         options: {
@@ -67,6 +66,14 @@ const layerConfigurations = [
       { name: "fingers",
         options: {
           bindTo: "right_hand",
+          bypassDNA: true,
+        }
+      },
+      { name: "rarity",
+        options: {
+          level: [
+            250, 450, 700, 1000
+          ],
           bypassDNA: true,
         }
       },

@@ -1,10 +1,10 @@
 const basePath = process.cwd();
 const fs = require("fs");
-const layersDir = `${basePath}/layers`;
+// const layersDir = `${basePath}/layers`;
 
 const { layerConfigurations } = require(`${basePath}/src/config.js`);
 
-const { getElements } = require("../src/main.js");
+const { getElements, layersDir } = require("../src/main.js");
 
 // read json data
 let rawdata = fs.readFileSync(`${basePath}/build/json/_metadata.json`);

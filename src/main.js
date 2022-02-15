@@ -141,7 +141,11 @@ const layersSetup = (layersOrder) => {
     bindTo:
       layerObj.options?.["bindTo"] !== undefined
       ? layerObj.options?.["bindTo"]
-      : ""
+      : "",
+    level:
+      layerObj.options?.["level"] !== undefined
+      ? layerObj.options?.["level"]
+      : undefined
   }));
   return layers;
 };
@@ -228,6 +232,7 @@ const constructLayerToDna = (_dna = "", _layers = []) => {
       selectedElement: selectedElement,
       bound: layer.bound,
       bindTo: layer.bindTo,
+      level: layer.lebel
     };
   });
   return mappedDnaToLayers;
@@ -281,32 +286,82 @@ const isDnaUnique = (_DnaList = new Set(), _dna = "") => {
 const createDna = (_layers) => {
   let randNum = [];
   let bound = {};
+  _layers.score = 0;
   _layers.forEach((layer) => {
     var totalWeight = 0;
     layer.elements.forEach((element) => {
       totalWeight += element.weight;
     });
     if (layer.bindTo !== "") {
-      console.log(`this layer bound to ${layer.bindTo}`);
+      // console.log(`this layer bound to ${layer.bindTo}`);
+      
       return randNum.push(
         `${layer.elements[bound[layer.bindTo].boundIndex].id}:` +
         `${layer.elements[bound[layer.bindTo].boundIndex].filename}${layer.bypassDNA? '?bypassDNA=true' : ''}`
       );
     }
+    if (layer.level !== undefined) {
+      console.log(_layers.score);
+      if (_layers.score <= 300) {
+        return randNum.push(
+          `${0}:` +
+          `rarity_common.svg${layer.bypassDNA? '?bypassDNA=true' : ''}`
+        );
+      }
+      if (_layers.score <= 350) {
+        return randNum.push(
+          `${3}:` +
+          `rarity_limited.svg${layer.bypassDNA? '?bypassDNA=true' : ''}`
+        );
+      }
+      if (_layers.score <= 750) {
+        return randNum.push(
+          `${4}:` +
+          `rarity_rare.svg${layer.bypassDNA? '?bypassDNA=true' : ''}`
+        );
+      }
+      if (_layers.score <= 1000) {
+        return randNum.push(
+          `${1}:` +
+          `rarity_epic.svg${layer.bypassDNA? '?bypassDNA=true' : ''}`
+        );
+      }
+      if (_layers.score > 1000) {
+        return randNum.push(
+          `${2}:` +
+          `rarity_legendary.svg${layer.bypassDNA? '?bypassDNA=true' : ''}`
+        );
+      }
+    }
     // number between 0 - totalWeight
     let random = Math.floor(Math.random() * totalWeight);
+
     for (var i = 0; i < layer.elements.length; i++) {
       // subtract the current weight from the random weight until we reach a sub zero value.
       random -= layer.elements[i].weight;
       if (random < 0) {
-        console.log(layer.elements[i]);
+        // console.log(layer.elements[i]);
         if (layer.bound === true) {
-          console.log("this layer is a binding, record it");
+          // console.log("this layer is a binding, record it");
           bound[layer.name] = {
               name: layer.elements[i].name,
               boundIndex: layer.elements[i].id,
           };
-          console.log(bound);
+          // console.log(bound);
+        }
+        // console.log(layer.elements[i]);
+        if (layer.elements[i].name.endsWith('common')) {
+          _layers.score += 10;
+        } else if (layer.elements[i].name.endsWith('limited')) {
+          _layers.score += 20;
+        } else if (layer.elements[i].name.endsWith('rare')) {
+          _layers.score += 40;
+        } else if (layer.elements[i].name.endsWith('epic')) {
+          _layers.score += 80;
+        } else if (layer.elements[i].name.endsWith('legendary')) {
+          _layers.score += 160;
+        } else if (layer.elements[i].name.endsWith('legendary2')) {
+          _layers.score += 240;
         }
         return randNum.push(
           `${layer.elements[i].id}:${layer.elements[i].filename}${layer.bypassDNA? '?bypassDNA=true' : ''}`
