@@ -23,23 +23,30 @@ const solanaMetadata = {
   ],
 };
 // If you have selected Solana then the collection starts from 0 automatically
+
+const regenerateLayers = true;
+
 const layerConfigurations = [
   {
     growEditionSizeTo: 10,
     layersOrder: [
-      { name: "background" },
+      { name: "background",
+        prefix: 'bg'
+      },
       { 
         name: "cloak_back",
         options: {
           bound: true,
-        }
+        },
+        prefix: 'cloak'
       },
       { name: "shadow" },
       { 
         name: "right_hand",
         options: {
           bound: true,
-        }
+        },
+        prefix: 'rh'
       },
       { name: "spellbook" },
       { 
@@ -50,24 +57,26 @@ const layerConfigurations = [
         }
       },
       { name: "bandage" },
-      { name: "boots" },
+      { name: "boots", prefix: 'shoes' },
       { name: "pants" },
-      { name: "clothes" },
+      { name: "clothes", prefix: 'cloths' },
       { name: "necklace" },
       { 
         name: "cloak_front",
         options: {
           bindTo: "cloak_back",
           bypassDNA: true, 
-        }
+        },
+        prefix: 'cloakNeck'
       },
       { name: "staff" },
-      { name: "hats" },
+      { name: "hats", prefix: 'hat' },
       { name: "fingers",
         options: {
           bindTo: "right_hand",
           bypassDNA: true,
-        }
+        },
+        prefix: 'lh'
       },
       { name: "rarity",
         options: {
@@ -152,6 +161,7 @@ module.exports = {
   description,
   background,
   uniqueDnaTorrance,
+  regenerateLayers,
   layerConfigurations,
   rarityDelimiter,
   preview,
