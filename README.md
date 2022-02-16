@@ -42,6 +42,17 @@ Alternatively you can run this command if you have node installed.
 npm install
 ```
 
+## Usage CryptoLab
+
+`npm run build`
+`node utils/svg2png.js`
+
+Upload png image folder to Pinata and paste the CID to `baseUri` in config.js
+
+`npm run update info`
+
+Upload the metadata folder to Pinata
+
 ## Usage ℹ️
 
 Create your different layers as folders in the 'layers' directory, and add all the layer assets in these directories. You can name the assets anything as long as it has a rarity weight attached in the file name like so: `example element#70.png`. You can optionally change the delimiter `#` to anything you would like to use in the variable `rarityDelimiter` in the `src/config.js` file.
@@ -124,7 +135,7 @@ const layerConfigurations = [
     layersOrder: [
       { name: "Background" , {
         options: {
-          bypassDNA: false;
+          bypassDNA: false,
         }
       }},
       { name: "Eyeball" },

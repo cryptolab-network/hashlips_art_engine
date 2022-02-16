@@ -9,12 +9,12 @@ const IMG_FORMAT = "svg";
 // General metadata for Ethereum
 const namePrefix = "Alcheneko";
 const description = "Alcheneko Test NFT";
-const baseUri = "ipfs://NewUriToReplace";
+const baseUri = "https://ipfs.io/ipfs/QmSsg1HdUCqvWfZbzMXQCnpQagiQcpoAFDLE22TWbJQbCG";
 
 const solanaMetadata = {
   symbol: "YC",
   seller_fee_basis_points: 1000, // Define how much % you want from secondary market sales 1000 = 10%
-  external_url: "https://www.youtube.com/c/hashlipsnft",
+  external_url: "https://www.hodlnft.net",
   creators: [
     {
       address: "7fXNuer5sbZtaTEPhtJ5g5gNtuyRoKkvxdjEjEnPN4mC",
@@ -31,7 +31,10 @@ const layerConfigurations = [
     growEditionSizeTo: 10,
     layersOrder: [
       { name: "background",
-        prefix: 'bg'
+        prefix: 'bg',
+        options: {
+          displayName: "Background",
+        }
       },
       { 
         name: "cloak_back",
@@ -54,23 +57,42 @@ const layerConfigurations = [
         options: {
           bindTo: "right_hand",
           bypassDNA: true,
+          displayName: "Body",
         }
       },
-      { name: "bandage" },
-      { name: "boots", prefix: 'shoes' },
-      { name: "pants" },
-      { name: "clothes", prefix: 'cloths' },
-      { name: "necklace" },
+      { 
+        name: "bandage",
+        options: {
+          displayName: 'Bandage'
+        }
+      },
+      { name: "boots", prefix: 'shoes', options: {
+        displayName: 'Boots',
+      } },
+      { name: "pants", options: {
+        displayName: 'Pants',
+      } },
+      { name: "clothes", prefix: 'cloths', options: {
+        displayName: 'Clothes',
+      } },
+      { name: "necklace", options: {
+        displayName: 'Necklace',
+      } },
       { 
         name: "cloak_front",
         options: {
           bindTo: "cloak_back",
-          bypassDNA: true, 
+          bypassDNA: true,
+          displayName: "Cloak",
         },
         prefix: 'cloakNeck'
       },
-      { name: "staff" },
-      { name: "hats", prefix: 'hat' },
+      { name: "staff", options: {
+        displayName: 'Staff',
+      } },
+      { name: "hats", prefix: 'hat', options: {
+        displayName: 'Hat',
+      } },
       { name: "fingers",
         options: {
           bindTo: "right_hand",
@@ -84,6 +106,7 @@ const layerConfigurations = [
             250, 450, 700, 1000
           ],
           bypassDNA: true,
+          displayName: 'Rarity'
         }
       },
     ],
@@ -135,7 +158,9 @@ const extraMetadata = {};
 
 const rarityDelimiter = "#";
 
-const boundDelimiter = "%";
+const scoreDelimiter = "%";
+
+const itemNameDelimiter = "@";
 
 const uniqueDnaTorrance = 10000;
 
@@ -164,6 +189,8 @@ module.exports = {
   regenerateLayers,
   layerConfigurations,
   rarityDelimiter,
+  scoreDelimiter,
+  itemNameDelimiter,
   preview,
   shuffleLayerConfigurations,
   debugLogs,

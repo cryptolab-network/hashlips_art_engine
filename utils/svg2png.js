@@ -14,24 +14,26 @@ const buildSetup = () => {
   fs.mkdirSync(svgDir);
 };
 
-const convert = async () => {
-  fs.readdirSync(buildDir).forEach(file => {
+async function convert() {
+  fs.readdirSync(buildDir).forEach(async file =>  {
     const options = {
       options: {
         unlimited: true
       }
     }
-    sharp(`${buildDir}/${file}`, options).png().toFile(`${buildDir}/${file.split('.svg')[0]}.png`).then(info => {
-      console.log(info);
-    });
+    const info = await sharp(`${buildDir}/${file}`, options).png().toFile(`${buildDir}/${file.split('.svg')[0]}.png`);
+    console.log(info);
     const data = fs.readFileSync(`${buildDir}/${file}`);
     fs.writeFileSync(`${svgDir}/${file}`, data, 'utf8');
     fs.unlink(`${buildDir}/${file}`, err => {
       if (err) throw err;
-    })
+    });
+    
   });
 }
 
 buildSetup();
 
-convert();
+(async () => {
+  await convert();
+})();

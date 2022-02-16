@@ -18,7 +18,7 @@ const {
   regenerateLayers,
   layerConfigurations,
   rarityDelimiter,
-  boundDelimiter,
+  scoreDelimiter,
   shuffleLayerConfigurations,
   debugLogs,
   extraMetadata,
@@ -41,7 +41,7 @@ const { ImageEngine } = (IMG_FORMAT == PNG_FORMAT ) ?  require(path.join(basePat
 
 //IMG_FORMAT Specific constants
 const Image_uri =  (IMG_FORMAT == PNG_FORMAT ) ? "image.png" : "image.svg";
-const Image_type= (IMG_FORMAT == PNG_FORMAT ) ? "image.png" : "image/svg";
+const Image_type= (IMG_FORMAT == PNG_FORMAT ) ? "image/png" : "image/svg";
 const Image_extension = (IMG_FORMAT == PNG_FORMAT ) ? "png" : "svg";
 
 console.log("Using Image format: " + IMG_FORMAT);
@@ -140,13 +140,13 @@ const getRarityWeight = (_str) => {
   return nameWithoutWeight;
 };
 
-const getBoundTarget = (_str) => {
+const getScore = (_str) => {
   let nameWithoutExtension = _str.slice(0, -4);
   var nameWithoutWeight = Number(
-    nameWithoutExtension.split(boundDelimiter).pop()
+    nameWithoutExtension.split(scoreDelimiter).pop()
   );
   if (isNaN(nameWithoutWeight)) {
-    nameWithoutWeight = 1;
+    nameWithoutWeight = 10;
   }
   return nameWithoutWeight;
 };
@@ -174,6 +174,7 @@ const getElements = (path) => {
         filename: i,
         path: `${path}${i}`,
         weight: getRarityWeight(i),
+        score: getScore(i),
       };
     });
 };
@@ -226,7 +227,7 @@ const addMetadata = (_dna, _edition) => {
   let tempMetadata = {
     name: `${namePrefix} #${_edition}`,
     description: description,
-    image: `${baseUri}/${_edition}.${Image_extension}`,
+    image: `${baseUri}/${_edition}.png`,
     dna: sha1(_dna),
     edition: _edition,
     date: dateTime,
@@ -404,7 +405,7 @@ const createDna = (_layers) => {
       // subtract the current weight from the random weight until we reach a sub zero value.
       random -= layer.elements[i].weight;
       if (random < 0) {
-        // console.log(layer.elements[i]);
+        console.log(layer.elements[i]);
         if (layer.bound === true) {
           // console.log("this layer is a binding, record it");
           bound[layer.name] = {
@@ -414,19 +415,7 @@ const createDna = (_layers) => {
           // console.log(bound);
         }
         // console.log(layer.elements[i]);
-        if (layer.elements[i].name.endsWith('common')) {
-          _layers.score += 10;
-        } else if (layer.elements[i].name.endsWith('limited')) {
-          _layers.score += 20;
-        } else if (layer.elements[i].name.endsWith('rare')) {
-          _layers.score += 40;
-        } else if (layer.elements[i].name.endsWith('epic')) {
-          _layers.score += 80;
-        } else if (layer.elements[i].name.endsWith('legendary')) {
-          _layers.score += 160;
-        } else if (layer.elements[i].name.endsWith('legendary2')) {
-          _layers.score += 240;
-        }
+        _layers.score += layer.elements[i].score;
         return randNum.push(
           `${layer.elements[i].id}:${layer.elements[i].filename}${layer.bypassDNA? '?bypassDNA=true' : ''}`
         );

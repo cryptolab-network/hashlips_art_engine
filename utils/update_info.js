@@ -8,6 +8,7 @@ const {
   namePrefix,
   network,
   solanaMetadata,
+  IMG_FORMAT,
 } = require(`${basePath}/src/config.js`);
 
 // read json data
