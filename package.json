@@ -20,7 +20,8 @@
     "update_info": "node utils/update_info.js",
     "preview_gif": "node utils/preview_gif.js",
     "svg2png": "node utils/svg2png.js",
-    "gengif": "node utils/gengif.js"
+    "gengif": "node utils/gengif.js",
+    "rename": "node utils/svg_rename.js"
   },
   "author": "Daniel Eugene Botha (HashLips)",
   "license": "MIT",

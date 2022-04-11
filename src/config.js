@@ -9,7 +9,7 @@ const IMG_FORMAT = "svg";
 // General metadata for Ethereum
 const namePrefix = "Alcheneko";
 const description = "Alcheneko Test NFT";
-const baseUri = "https://ipfs.io/ipfs/QmSsg1HdUCqvWfZbzMXQCnpQagiQcpoAFDLE22TWbJQbCG";
+const baseUri = "https://ipfs.io/ipfs/QmYfi6Cyxy9K2igjrtCV89dNXw1vJaGkyKGgyHH5N63pLJ";
 
 const solanaMetadata = {
   symbol: "YC",
@@ -28,7 +28,7 @@ const regenerateLayers = true;
 
 const layerConfigurations = [
   {
-    growEditionSizeTo: 10,
+    growEditionSizeTo: 5000,
     layersOrder: [
       { name: "background",
         prefix: 'bg',
@@ -103,7 +103,7 @@ const layerConfigurations = [
       { name: "rarity",
         options: {
           level: [
-            250, 450, 700, 1000
+            310, 540, 650, 820
           ],
           bypassDNA: true,
           displayName: 'Rarity'
@@ -172,7 +172,7 @@ const preview = {
 };
 
 const preview_gif = {
-  numberOfImages: 5,
+  numberOfImages: 500,
   order: "ASC", // ASC, DESC, MIXED
   repeat: 0,
   quality: 100,

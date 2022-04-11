@@ -8,7 +8,7 @@ const fs = require("fs");
 const { exit } = require("process");
 const sha1 = require(path.join(basePath, "/node_modules/sha1"));
 const buildDir = path.join(basePath, "/build");
-const rawSvgDir = path.join(basePath, '/raw_svg');
+const rawSvgDir = path.join(basePath, '/raw_svg_renamed');
 const {
   format,
   baseUri,
@@ -110,7 +110,7 @@ const regenSvgId = (layersPath) => {
     let newSvg = rawSvg;
     for (const id of idsSet) {
       if (id !== 'pattern') {
-        const name = `${file.split('.svg')[0]}`;
+        const name = `${file.split('.svg')[0].split('@')[0]}`;
         const idRe = new RegExp(`id="${id}"`, 'g');
         newSvg = newSvg.replace(idRe, `id="${name}_${id}"`);
         const urlRe = new RegExp(`"url\\(#${id}\\)"`, 'g');
@@ -135,7 +135,11 @@ const getRarityWeight = (_str) => {
     nameWithoutExtension.split(rarityDelimiter).pop()
   );
   if (isNaN(nameWithoutWeight)) {
-    nameWithoutWeight = 1;
+    const score = nameWithoutExtension.split(scoreDelimiter);
+    nameWithoutWeight = Number(score[0].split(rarityDelimiter).pop());
+    if (isNaN(nameWithoutWeight)) {
+      nameWithoutWeight = 1;
+    }
   }
   return nameWithoutWeight;
 };
@@ -168,9 +172,10 @@ const getElements = (path) => {
     .readdirSync(path)
     .filter((item) => !/(^|\/)\.[^\/\.]/g.test(item))
     .map((i, index) => {
+      const name = cleanName(i);
       return {
         id: index,
-        name: cleanName(i),
+        name: name.substring(name.indexOf('@') + 1),
         filename: i,
         path: `${path}${i}`,
         weight: getRarityWeight(i),
@@ -343,6 +348,8 @@ const removeQueryStrings = (_dna) => {
   return _dna.replace(query, '')
 }
 
+const levelCount = [0, 0, 0, 0, 0];
+
 const isDnaUnique = (_DnaList = new Set(), _dna = "") => {
   const _filteredDNA = filterDNAOptions(_dna);
   return !_DnaList.has(_filteredDNA);
@@ -367,31 +374,36 @@ const createDna = (_layers) => {
     }
     if (layer.level !== undefined) {
       console.log(_layers.score);
-      if (_layers.score <= 300) {
+      if (_layers.score <= layer.level[0]) {
+        levelCount[0]++;
         return randNum.push(
           `${0}:` +
           `rarity_common.svg${layer.bypassDNA? '?bypassDNA=true' : ''}`
         );
       }
-      if (_layers.score <= 350) {
+      if (_layers.score <= layer.level[1]) {
+        levelCount[1]++;
         return randNum.push(
           `${3}:` +
           `rarity_limited.svg${layer.bypassDNA? '?bypassDNA=true' : ''}`
         );
       }
-      if (_layers.score <= 750) {
+      if (_layers.score <= layer.level[2]) {
+        levelCount[2]++;
         return randNum.push(
           `${4}:` +
           `rarity_rare.svg${layer.bypassDNA? '?bypassDNA=true' : ''}`
         );
       }
-      if (_layers.score <= 1000) {
+      if (_layers.score <= layer.level[3]) {
+        levelCount[3]++;
         return randNum.push(
           `${1}:` +
           `rarity_epic.svg${layer.bypassDNA? '?bypassDNA=true' : ''}`
         );
       }
-      if (_layers.score > 1000) {
+      if (_layers.score > layer.level[3]) {
+        levelCount[4]++;
         return randNum.push(
           `${2}:` +
           `rarity_legendary.svg${layer.bypassDNA? '?bypassDNA=true' : ''}`
@@ -405,7 +417,6 @@ const createDna = (_layers) => {
       // subtract the current weight from the random weight until we reach a sub zero value.
       random -= layer.elements[i].weight;
       if (random < 0) {
-        console.log(layer.elements[i]);
         if (layer.bound === true) {
           // console.log("this layer is a binding, record it");
           bound[layer.name] = {
@@ -549,6 +560,7 @@ const startCreating = async () => {
     layerConfigIndex++;
   }
   writeMetaData(JSON.stringify(metadataList, null, 2));
+  console.log(levelCount);
 };
 
 module.exports = { startCreating, buildSetup, getElements, svgLayersSetup };

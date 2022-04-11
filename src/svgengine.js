@@ -39,8 +39,10 @@ const ImageEngine = {
 
     loadImage :  (_layer) => {        
         return new Promise( (resolve) => {
+            console.log(_layer);
+            console.log(_layer.selectedElement.path);
             fs.readFile(`${_layer.selectedElement.path}`,'utf8', function (err, buffer) { 
-            resolve(buffer);
+                resolve(buffer);
             });
         });
     }   
